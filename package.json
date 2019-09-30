@@ -1,0 +1,19 @@
+{
+  "name": "mqtt-sql-logger",
+  "version": "0.1.0",
+  "description": "MQTT Subscriber to save data to MySQL database",
+  "main": "logger.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gcsalzburg/mqtt-sql-logger.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gcsalzburg/mqtt-sql-logger/issues"
+  },
+  "homepage": "https://github.com/gcsalzburg/mqtt-sql-logger#readme"
+}

@@ -3,24 +3,24 @@ const mqtt  = require('mqtt');
 const mysql = require('./mysql_connection.js');
 
 // Default configuration options
-let config_defaults = {
-   mqtt_broker:         "mqtt.example.com", // URL for MQTT broker
-   mqtt_username:       "",                 // Username for MQTT subscriber user
-   mqtt_password:       "",                 // Password for MQTT subscriber user
-   mqtt_port:           8083,               // Port for MQTT connection (note default is to use secure web sockets)
+const config_defaults = {
+   mqtt_broker         : "",    // URL for MQTT broker
+   mqtt_username       : "",    // Username for MQTT subscriber user
+   mqtt_password       : "",    // Password for MQTT subscriber user
+   mqtt_port           : 8083,  // Port for MQTT connection (note default is to use secure web sockets)
 
-   sql_host:            "localhost",        // Hostname for MySQL server
-   sql_username:        "",                 // Username for MySQL connection
-   sql_password:        "",                 // Password for MySQL connection
-   sql_database:        "",                 // MySQL database name
+   sql_host            : "",    // Hostname for MySQL server
+   sql_username        : "",    // Username for MySQL connection
+   sql_password        : "",    // Password for MySQL connection
+   sql_database        : "",    // MySQL database name
 
-   sql_table:           "log",              // Name of MySQL table
+   sql_table           : "log", // Name of MySQL table
 
-   topic:               "penthouse/temp/+", // MQTT subscription topic
+   topic               : "+",   // MQTT subscription topic
 
-   save_topic:          true,               // If true, will save full topic path to 'topic' field
-   topic_fields:        "",                 // Array of table fields to save parts of topic path to
-   topic_save_interval: 60*5,               // How many seconds to wait between db saves on the same topic
+   save_topic          : true,  // If true, will save full topic path to 'topic' field
+   topic_fields        : "",    // Array of table fields to save parts of topic path to (see below)
+   topic_save_interval : 300,  // How many seconds to wait between db saves on the same topic
 };
 
 // Main log class

@@ -28,6 +28,9 @@ class log {
 
       // Save configuration
       this.config = extendDefaults(config_defaults,user_config);
+
+      // Create array for tracking last save intervals
+      this.last_saves = {};
       
       // Begin MySQL connection
       mysql.startConnection(
@@ -71,48 +74,38 @@ class log {
 
    handleMsg(topic,message,packet){
 
-       // Split out parts
-       var topic_path = topic.split('/');
+      if(mysql.isConnected()){
 
-       // path should be: penthouse/temp/device-name
-       if(topic_path[1] != "temp"){
-          console.log("Path is not a temperature node: " + topic);
-       }else{
-          device_name = topic_path[2];
-          console.log(device_name + " = "+ message);
+         // If we haven't seen this device before, create a record for saving it
+         if(this.last_saves[topic] == undefined){
+            this.last_saves[topic] = 0;
+         }
 
-          // If we haven't seen this device before, create a record for saving it
-          if(last_saves[device_name] == undefined){
-             last_saves[device_name] = 0;
-          }
+         // Get timestamp
+         var ts_now = Math.floor(new Date() / 1000);
 
-          if(mysql_conn.isConnected()){
+         // Debug statement
+         console.log(`MQTT received [${topic}]: ${message}`);
 
-             // Get timestamp
-             var ts_now = Math.floor(new Date() / 1000);
+         // Should we save it?
+         if(ts_now > this.last_saves[topic]+this.config.topic_save_interval){
+            
+            // Save query       
+            var sql = "INSERT INTO log (id,topic,value,ts) VALUES (NULL, :topic, :message, :ts)";
+            var sql_data = {
+                  "topic"    : topic,
+                  "message"  : message,
+                  "ts"       : ts_now
+            };
 
-             // Get building
-             var topic_path = topic.split('/');
-             var location = topic_path[0];
-             var device = topic_path[1];
-
-             if(ts_now > last_saves[device_name]+db_save_interval){
-                var sql = "INSERT INTO log (id,location,device,value,ts) VALUES (NULL, :location, :device, :device_value, :ts)";
-                var sql_data = {
-                      "location"     : location,
-                      "device"       : device_name,
-                      "device_value" : message,
-                      "ts"           : ts_now
-                };
-
-                mysql_conn.getConnection().query(sql,sql_data, function (error, results, fields) {
-                      if (error) throw error;
-                      console.log('Saved ' + results.affectedRows + ' row(s) to database!');
-                });
-                last_saves[device_name] = ts_now;
-             }
-          }
-       }
+            let that = this;
+            mysql.getConnection().query(sql,sql_data, function (error, results, fields) {
+                  if (error) throw error;
+                  console.log(` -> Saved ${results.affectedRows} row(s) to database!`);
+                  that.last_saves[topic] = ts_now;
+            });
+         }
+      }
    }
 
    printMsg() {

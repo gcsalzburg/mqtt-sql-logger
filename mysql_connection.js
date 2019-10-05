@@ -1,3 +1,4 @@
+'use strict';
 
 const mysql = require('mysql');
 
@@ -20,13 +21,13 @@ function mysql_reconnect(db_config) {
     });
 
     connection.on('error', function(err) {
-        console.log('Database error: \n', err);
-        is_db_connected = false;  
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+         console.log('Database error: \n', err);
+         is_db_connected = false;  
+         if(err.code === 'PROTOCOL_CONNECTION_LOST') {
             mysql_reconnect(db_config); 
-        }else{
+         }else{
             throw err; 
-        }
+         }
     });
 }
 

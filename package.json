@@ -1,6 +1,6 @@
 {
    "name": "mqtt-sql-logger",
-   "version": "0.1.0",
+   "version": "0.2.0",
    "description": "Super simple \"set and forget\" logger to store history of MQTT messages in a MySQL database.",
    "main": "index.js",
    "repository": {

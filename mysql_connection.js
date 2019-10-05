@@ -1,27 +1,32 @@
 'use strict';
 
+// Globals
+global.DEBUG = false;
+
+// Imports
 const mysql = require('mysql');
 
 // Use to prevent saving of MQTT when database not connected
 let is_db_connected = false;
 
 // Main connection function, with reconnect on timeout included
+let connection;
 function mysql_reconnect(db_config) {
     connection = mysql.createConnection(db_config); // Recreate the connection, since the old one cannot be reused.
 
     connection.connect(function(err) {  
         if(!err) {
-            console.log("Database is connected ...");
+            if(DEBUG) console.log("Database is connected ...");
             is_db_connected = true;  
         } else {
-            console.log("Error connecting to database:\n", err);  
+            if(DEBUG) console.log("Error connecting to database:\n", err);  
             is_db_connected = false;
             setTimeout(mysql_reconnect,2000,db_config); // We introduce a delay before attempting to reconnect
         }
     });
 
     connection.on('error', function(err) {
-         console.log('Database error: \n', err);
+         if(DEBUG) console.log('Database error: \n', err);
          is_db_connected = false;  
          if(err.code === 'PROTOCOL_CONNECTION_LOST') {
             mysql_reconnect(db_config); 
@@ -32,7 +37,9 @@ function mysql_reconnect(db_config) {
 }
 
 // Exports for this module
-module.exports.startConnection = function(host,username,password,database){
+module.exports.startConnection = function(host,username,password,database,set_debug=true){
+
+   DEBUG = set_debug;
    const db_config = {
       host        : host,
       user        : username,

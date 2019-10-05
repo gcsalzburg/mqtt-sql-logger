@@ -59,7 +59,9 @@ const config_defaults = {
 
    save_topic          : true,  // If true, will save full topic path to 'topic' field
    topic_fields        : "",    // Array of table fields to save parts of topic path to (see below)
-   topic_save_interval : 300,  // How many seconds to wait between db saves on the same topic
+   topic_save_interval : 300,   // How many seconds to wait between db saves on the same topic
+   
+   debug               : true   // Print console debug messages
 };
 ```
 

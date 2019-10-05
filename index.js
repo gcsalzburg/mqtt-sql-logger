@@ -1,3 +1,8 @@
+'use strict';
+
+// Debug flag
+global.DEBUG = false;
+
 // Imports
 const mqtt  = require('mqtt');
 const mysql = require('./mysql_connection.js');
@@ -20,7 +25,9 @@ const config_defaults = {
 
    save_topic          : true,  // If true, will save full topic path to 'topic' field
    topic_fields        : "",    // Array of table fields to save parts of topic path to (see below)
-   topic_save_interval : 300,  // How many seconds to wait between db saves on the same topic
+   topic_save_interval : 300,   // How many seconds to wait between db saves on the same topic
+
+   debug               : true   // Print console debug messages
 };
 
 // Main log class
@@ -31,6 +38,7 @@ class log {
 
       // Save configuration
       this.config = extendDefaults(config_defaults,user_config);
+      DEBUG = this.config.debug;
 
       // Create array for tracking last save intervals
       this.last_saves = {};
@@ -40,7 +48,8 @@ class log {
          this.config.sql_host,
          this.config.sql_username,
          this.config.sql_password,
-         this.config.sql_database
+         this.config.sql_database,
+         DEBUG
       );
 
       // Connect to MQTT broker
@@ -54,11 +63,11 @@ class log {
       // MQTT topic subscriber
       const subscriber_topic = this.config.topic;
       mqtt_client.on('connect', function() { // When connected
-         console.log("Connected to MQTT");
+         if(DEBUG) console.log("Connected to MQTT");
          // Subscribe to the topic
          mqtt_client.subscribe(subscriber_topic, function(err) {
             if(err){
-               console.log(err);
+               if(DEBUG) console.log(err);
             }
          });
       });
@@ -71,7 +80,7 @@ class log {
       
       // MQTT subscriber error handler
       mqtt_client.on('error', function(err) {
-         console.log(err);
+         if(DEBUG) console.log(err);
       });
    }
 
@@ -84,7 +93,7 @@ class log {
       }
 
       // Debug statement
-      console.log(`MQTT received [${topic}]: ${message}`);
+      if(DEBUG) console.log(`MQTT received [${topic}]: ${message}`);
 
       // Only proceed is MySQL is connected
       if(mysql.isConnected()){
@@ -129,7 +138,7 @@ class log {
             let that = this;
             mysql.getConnection().query(sql,sql_data, function (error, results, fields) {
                   if (error) throw error;
-                  console.log(` -> Saved ${results.affectedRows} row(s) to database!`);
+                  if(DEBUG) console.log(` -> Saved ${results.affectedRows} row(s) to database!`);
                   that.last_saves[topic] = ts_now;
             });
          }

@@ -1,36 +1,116 @@
-# mqtt-sql-logger
-💿 MQTT Subscriber to save data to MySQL database
+# 💿 mqtt-sql-logger
 
-This is a "set and forget" logger, which enables you to save a history of messages sent to a particular topic.
+> Very simple "set and forget" logger to store history of MQTT messages in a MySQL database.
 
-## MQTT Structure
+## How to use
 
-This program was initially set up for home automation testing, so the MQTT path structure is assumed to be:
+1. Install package
 
-> `location/type/node`
+   ```bash
+   > npm install mqtt-sql-logger
+   ```
 
-For instance, a node in the kitchen of the penthouse which sends temperature records would be:
+2. Create a table in your MySQL database for the log
 
-> `penthouse/temp/kitchen`
+   ```sql
+   CREATE TABLE IF NOT EXISTS `log` ( `id` INT NOT NULL AUTO_INCREMENT , `topic` VARCHAR(200) NULL , `message` TEXT NULL , `ts` INT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+   ```
 
-## SQL
+3. In your Node project, import and create a new logger with your credentials:
 
-Assumes an SQL table `log` with structure as shown:
+   ```js
+   const mqtt_sql_logger = require('mqtt-sql-logger');
+
+   const log = new mqtt_sql_logger.log({
+      mqtt_broker    : 'mqtt.broker-url.com',
+      mqtt_username  : 'broker_username',
+      mqtt_password  : 'broker_password',
+
+      sql_host       : 'db_hostname',
+      sql_username   : 'db_username',
+      sql_password   : 'db_password',
+      sql_database   : 'db_name',
+
+      topic          : 'your/topic/path/+'
+   });
+   ```
+
+4. That's it!
+
+## Configuration
+
+Here are all the available options, along with their default values. The only required options are those shown in the `How to use` steps above.
+
+```js
+const config_defaults = {
+   mqtt_broker:         "",    // URL for MQTT broker
+   mqtt_username:       "",    // Username for MQTT subscriber user
+   mqtt_password:       "",    // Password for MQTT subscriber user
+   mqtt_port:           8083,  // Port for MQTT connection (note, only secure web sockets supported at present)
+
+   sql_host:            "",    // Hostname for MySQL server
+   sql_username:        "",    // Username for MySQL connection
+   sql_password:        "",    // Password for MySQL connection
+   sql_database:        "",    // MySQL database name
+
+   sql_table:           "log", // Name of MySQL table
+
+   topic:               "+",   // MQTT subscription topic
+
+   save_topic:          true,  // If true, will save full topic path to 'topic' field
+   topic_fields:        "",    // Array of table fields to save parts of topic path to (see below)
+   topic_save_interval: 300,   // How many seconds to wait between db saves on the same topic
+};
+```
+
+### Custom table structures
+
+Sometimes it might be preferrable to save parts of the topic path into a custom table structure.
+
+For example, an MQTT home automation temperature system might sent messages from nodes to topics such as:
+
+```
+iot/family-home/temp/garage
+iot/holiday-home/temp/kitchen
+```
+
+An example SQL table structure is shown:
 
 ```sql
 mysql> describe log;
-+---------+--------------+------+-----+---------+----------------+
-| Field   | Type         | Null | Key | Default | Extra          |
-+---------+--------------+------+-----+---------+----------------+
-| id      | int(11)      | NO   | PRI | NULL    | auto_increment |
-| topic   | varchar(200) | YES  |     | NULL    |                |
-| message | text         | YES  |     | NULL    |                |
-| ts      | int(11)      | YES  |     | NULL    |                |
-+---------+--------------+------+-----+---------+----------------+
++----------+--------------+------+-----+---------+----------------+
+| Field    | Type         | Null | Key | Default | Extra          |
++----------+--------------+------+-----+---------+----------------+
+| id       | int(11)      | NO   | PRI | NULL    | auto_increment |
+| message  | text         | YES  |     | NULL    |                |
+| ts       | int(11)      | YES  |     | NULL    |                |
+| building | varchar(200) | YES  |     | NULL    |                |
+| room     | varchar(200) | YES  |     | NULL    |                |
++----------+--------------+------+-----+---------+----------------+
 ```
 
-## Future
+Add the following items to the configuration:
 
-+ Allow custom field names in SQL and custom table structure
-+ Add error checking on db & MQTT connection
-+ Adopt a standard MQTT path structure
+   ```js
+   const log = new mqtt_sql_logger.log({
+      [...]
+      topic        : 'iot/+'
+      save_topic   : false,
+      topic_fields : ["","building","","room"]
+   });
+   ```
+
+The resulting log entries will appear as shown:
+
+```sql
+mysql> select * from log;
++----+---------+------------+--------------+---------+
+| id | message | ts         | building     | room    |
++----+---------+------------+--------------+---------+
+|  1 | 18.38   | 1570273857 | family-home  | garage  |
+|  2 | 24.17   | 1570273902 | holiday-home | kitchen |
+|  3 | 18.18   | 1570273921 | family-home  | garage  |
+|  4 | 23.53   | 1570273934 | holiday-home | kitchen |
+|  5 | 23.88   | 1570273988 | holiday-home | kitchen |
++----+---------+------------+--------------+---------+
+```

@@ -1,4 +1,4 @@
-
+// Imports
 const mqtt  = require('mqtt');
 const mysql = require('./mysql_connection.js');
 
@@ -24,6 +24,7 @@ let config_defaults = {
 // Main log class
 class log {
 
+   // Constructor
    constructor(user_config) {
 
       // Save configuration
@@ -72,20 +73,22 @@ class log {
       });
    }
 
+   // Main handler for when a new subscribed message arrives
    handleMsg(topic,message,packet){
 
-      if(mysql.isConnected()){
+      // If we haven't seen this device before, create a record for saving it
+      if(this.last_saves[topic] == undefined){
+         this.last_saves[topic] = 0;
+      }
 
-         // If we haven't seen this device before, create a record for saving it
-         if(this.last_saves[topic] == undefined){
-            this.last_saves[topic] = 0;
-         }
+      // Debug statement
+      console.log(`MQTT received [${topic}]: ${message}`);
+
+      // Only proceed is MySQL is connected
+      if(mysql.isConnected()){
 
          // Get timestamp
          var ts_now = Math.floor(new Date() / 1000);
-
-         // Debug statement
-         console.log(`MQTT received [${topic}]: ${message}`);
 
          // Should we save it?
          if(ts_now > this.last_saves[topic]+this.config.topic_save_interval){
@@ -98,6 +101,7 @@ class log {
                   "ts"       : ts_now
             };
 
+            // Register response
             let that = this;
             mysql.getConnection().query(sql,sql_data, function (error, results, fields) {
                   if (error) throw error;
@@ -106,17 +110,12 @@ class log {
             });
          }
       }
-   }
-
-   printMsg() {
-      console.log(this.config.mqtt_broker);
+      
    }
 }
 
 // Export log class
 module.exports.log = log;
-
-
 
 
 

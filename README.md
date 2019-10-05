@@ -19,14 +19,14 @@ Assumes an SQL table `log` with structure as shown:
 
 ```sql
 mysql> describe log;
-+-------+--------------+------+-----+---------+----------------+
-| Field | Type         | Null | Key | Default | Extra          |
-+-------+--------------+------+-----+---------+----------------+
-| id    | int(11)      | NO   | PRI | NULL    | auto_increment |
-| topic | varchar(200) | YES  |     | NULL    |                |
-| value | text         | YES  |     | NULL    |                |
-| ts    | int(11)      | YES  |     | NULL    |                |
-+-------+--------------+------+-----+---------+----------------+
++---------+--------------+------+-----+---------+----------------+
+| Field   | Type         | Null | Key | Default | Extra          |
++---------+--------------+------+-----+---------+----------------+
+| id      | int(11)      | NO   | PRI | NULL    | auto_increment |
+| topic   | varchar(200) | YES  |     | NULL    |                |
+| message | text         | YES  |     | NULL    |                |
+| ts      | int(11)      | YES  |     | NULL    |                |
++---------+--------------+------+-----+---------+----------------+
 ```
 
 ## Future

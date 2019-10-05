@@ -4,21 +4,21 @@ Super simple "set and forget" logger to store history of MQTT messages in a MySQ
 
 🔒 Only works with authentication brokers and connections for now.
 
-## How to use
+## Installation
 
-1. Install package
+```bash
+> npm install mqtt-sql-logger
+```
 
-   ```bash
-   > npm install mqtt-sql-logger
-   ```
+## Using it
 
-2. Create a table in your MySQL database for the log
+1. Create a table in your MySQL database for the log
 
    ```sql
    CREATE TABLE IF NOT EXISTS `log` ( `id` INT NOT NULL AUTO_INCREMENT , `topic` VARCHAR(200) NULL , `message` TEXT NULL , `ts` INT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
    ```
 
-3. In your Node project, import and create a new logger with your MQTT & DB credentials:
+2. In your Node project, import and create a new logger with your MQTT & DB credentials:
 
    ```js
    const mqtt_sql_logger = require('mqtt-sql-logger');
@@ -37,7 +37,7 @@ Super simple "set and forget" logger to store history of MQTT messages in a MySQ
    });
    ```
 
-4. That's it!
+3. That's it!
 
 ## Configuration
 

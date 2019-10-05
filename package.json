@@ -1,19 +1,25 @@
 {
-  "name": "mqtt-sql-logger",
-  "version": "0.1.0",
-  "description": "MQTT Subscriber to save data to MySQL database",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gcsalzburg/mqtt-sql-logger.git"
-  },
-  "author": "",
-  "bugs": {
-    "url": "https://github.com/gcsalzburg/mqtt-sql-logger/issues"
-  },
-  "homepage": "https://github.com/gcsalzburg/mqtt-sql-logger#readme",
-  "dependencies": {
-    "mqtt": "^3.0.0",
-    "mysql": "^2.17.1"
-  }
+   "name": "mqtt-sql-logger",
+   "version": "0.1.0",
+   "description": "Super simple \"set and forget\" logger to store history of MQTT messages in a MySQL database.",
+   "main": "index.js",
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/gcsalzburg/mqtt-sql-logger.git"
+   },
+   "license" : "MIT",
+   "author": {
+      "name" : "George Cave",
+      "email" : "hello@designedbycave.co.uk",
+      "url" : "https://www.designedbycave.co.uk/"
+   },
+   "bugs": {
+      "url": "https://github.com/gcsalzburg/mqtt-sql-logger/issues",
+      "email" : "hello@designedbycave.co.uk"
+   },
+   "homepage": "https://github.com/gcsalzburg/mqtt-sql-logger#readme",
+   "dependencies": {
+      "mqtt": "^3.0.0",
+      "mysql": "^2.17.1"
+   }
 }

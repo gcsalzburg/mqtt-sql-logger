@@ -4,21 +4,23 @@ const mysql = require('./mysql_connection.js');
 
 // Default configuration options
 let config_defaults = {
-   mqtt_broker:         "mqtt.example.com",           // URL for MQTT broker
-   mqtt_username:       "",                           // Username for MQTT subscriber user
-   mqtt_password:       "",                           // Password for MQTT subscriber user
-   mqtt_port:           8083,                         // Port for MQTT connection (note default is to use secure web sockets)
+   mqtt_broker:         "mqtt.example.com", // URL for MQTT broker
+   mqtt_username:       "",                 // Username for MQTT subscriber user
+   mqtt_password:       "",                 // Password for MQTT subscriber user
+   mqtt_port:           8083,               // Port for MQTT connection (note default is to use secure web sockets)
 
-   sql_host:            "localhost",                  // Hostname for MySQL server
-   sql_username:        "",                           // Username for MySQL connection
-   sql_password:        "",                           // Password for MySQL connection
-   sql_database:        "",                           // MySQL database name
+   sql_host:            "localhost",        // Hostname for MySQL server
+   sql_username:        "",                 // Username for MySQL connection
+   sql_password:        "",                 // Password for MySQL connection
+   sql_database:        "",                 // MySQL database name
 
-   topic:               "penthouse/temp/+",            // MQTT subscription topic
+   sql_table:           "log",              // Name of MySQL table
 
-   save_topic:          true,                         // If true, will save full topic path to 'topic' field
-   topic_fields:        ["location","type","device"], // Array of table fields to save parts of topic path to
-   topic_save_interval: 60*5,                         // How many seconds to wait between db saves on the same topic
+   topic:               "penthouse/temp/+", // MQTT subscription topic
+
+   save_topic:          true,               // If true, will save full topic path to 'topic' field
+   topic_fields:        "",                 // Array of table fields to save parts of topic path to
+   topic_save_interval: 60*5,               // How many seconds to wait between db saves on the same topic
 };
 
 // Main log class
@@ -92,14 +94,36 @@ class log {
 
          // Should we save it?
          if(ts_now > this.last_saves[topic]+this.config.topic_save_interval){
-            
-            // Save query       
-            var sql = "INSERT INTO log (id,topic,value,ts) VALUES (NULL, :topic, :message, :ts)";
-            var sql_data = {
-                  "topic"    : topic,
-                  "message"  : message,
-                  "ts"       : ts_now
+
+            // Base object for saving the data
+            const sql_data = {
+               "ts"      : ts_now,
+               "topic"   : topic,
+               "message" : message,
             };
+
+            // Remove topic if we don't want to save this:
+            if(!this.config.save_topic){
+               delete sql_data.topic;
+            }
+
+            // Add additional fields to save, if they exist:
+            if(Array.isArray(this.config.topic_fields)){
+               const fields = this.config.topic_fields;
+               if(fields.length > 0){
+                  // Map values in the fields list to parts of the topic we are subscribed to
+                  const topic_parts = topic.split("/");
+                  for(let i=0; i < Math.min(fields.length,topic_parts.length); i++){
+                     if(fields[i] != ""){
+                        sql_data[fields[i]] = topic_parts[i];
+                     }
+                  }
+               }
+            }
+            
+            // Build query       
+            const keys = Object.keys(sql_data);  
+            var sql = `INSERT INTO ${this.config.sql_table} (${ keys.join(", ") }) VALUES (${ keys.map(i => ':' + i).join(", ") })`;
 
             // Register response
             let that = this;
@@ -116,8 +140,6 @@ class log {
 
 // Export log class
 module.exports.log = log;
-
-
 
  // Utility method to extend defaults with user options
 var extendDefaults = function ( defaults, options ) {
